@@ -1,0 +1,40 @@
+{
+  "name": "niba-data",
+  "version": "0.1.0",
+  "description": "A simple, easy-to-use web storage solution",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "build": "rollup -c"
+  },
+  "keywords": [
+    "storage",
+    "web storage"
+  ],
+  "author": "袁首京<yuanshoujing@gmail.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@babel/core": "^7.23.3",
+    "@babel/plugin-transform-runtime": "^7.23.4",
+    "@babel/preset-env": "^7.23.3",
+    "@jest/globals": "^29.7.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "rollup": "^4.5.2",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-delete": "^2.0.0"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.23.4",
+    "pouchdb": "^8.0.1",
+    "pouchdb-find": "^8.0.1",
+    "uuid": "^9.0.1"
+  }
+}
