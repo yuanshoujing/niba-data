@@ -19,7 +19,7 @@ class Organ extends NBModel {
 
   indexes = [["kind", "spell"]];
 
-  orders = { create_time: "asc" };
+  orders = { name: "asc" };
 
   constructor(args = {}) {
     const { name = "b_organs", daily = false } = args;

@@ -29,10 +29,12 @@ class BaseModel {
     this.propsMap = {};
     this.fulltext = [];
     this.indexes = [];
-    this.orders = {};
   }
 
-  set devMode(value) {
+  /**
+   * @param {bool} value
+   */
+  set devMode(value = false) {
     this.devMode_ = value;
   }
 
@@ -63,46 +65,6 @@ class BaseModel {
 
     return this.db_;
   }
-
-  /**
-   * 创建索引
-   * @returns
-   */
-  createIdx = async () => {
-    const orderFields =
-      this.orders && Object.keys(this.orders).length > 0
-        ? Object.keys(this.orders)
-        : [];
-    const defaultFields = [...orderFields];
-    const fulltextFields = ["fulltext_", ...defaultFields];
-
-    await this.db.info();
-
-    // 全文索引
-    if (this.fulltext.length > 0) {
-      await this.db.createIndex({
-        index: {
-          fields: fulltextFields,
-        },
-      });
-    }
-
-    // 自定义索引
-    for (const indexFields of this.indexes) {
-      await this.db.createIndex({
-        index: {
-          fields: [...indexFields, ...defaultFields],
-        },
-      });
-    }
-
-    // 排序索引
-    await this.db.createIndex({
-      index: {
-        fields: defaultFields,
-      },
-    });
-  };
 
   destroy = async () => {
     return await this.db.destroy();
@@ -278,20 +240,22 @@ class BaseModel {
     return this.postproccess(resp);
   };
 
-  query = async ({ selector, fields, skip = 0, limit = 0 }) => {
-    await this.createIdx();
-
+  query = async ({ selector, fields, sort = [], skip = 0, limit = 0 }) => {
     // sort 字段必须出现在 selector 中
     const sortSelectors = {};
-    const sortFields = [];
-    for (const [k, v] of Object.entries(this.orders)) {
-      sortFields.push({
-        [k]: v,
-      });
-      Object.assign(sortSelectors, {
-        [k]: { $exists: true },
-      });
-    }
+    sort.forEach((v) => {
+      if (typeof v === "string") {
+        Object.assign(sortSelectors, {
+          [v]: { $exists: true },
+        });
+      } else {
+        Object.keys(v).forEach((k) => {
+          Object.assign(sortSelectors, {
+            [k]: { $exists: true },
+          });
+        });
+      }
+    });
 
     const querySelector = {
       ...(selector ?? {}),
@@ -311,9 +275,9 @@ class BaseModel {
       Object.assign(params, { limit });
     }
     if (sortFields.length > 0) {
-      Object.assign(params, { sort: sortFields });
+      Object.assign(params, { sort });
     }
-    // logger.debug("--> query params: %O", params);
+    logger.debug("--> query params: %s", JSON.stringify(params));
 
     if (this.devMode_ && Object.keys(querySelector).length > 0) {
       const explanation = await this.db.explain(params);
