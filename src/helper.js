@@ -4,7 +4,7 @@ export function padding(str, width, c = " ") {
   return str.length < width ? c.repeat(width - str.length) + str : str;
 }
 
-export function pickFields(selector = {}, result = []) {
+export function pickFields(selector = {}, result = [], parentKey = "") {
   for (const [k, v] of Object.entries(selector)) {
     if (["$and", "$or", "$nor"].includes(k)) {
       for (const o of v) {
@@ -36,11 +36,21 @@ export function pickFields(selector = {}, result = []) {
       continue;
     } else if (
       Object.keys(v).findIndex((o) => {
+        return o.startsWith("$");
+      }) > -1
+    ) {
+      const key = parentKey ? parentKey + "." + k : k;
+      result.push(key);
+    } else if (
+      Object.keys(v).findIndex((o) => {
         return /^\d+$/.test(o) === false;
       }) > -1
     ) {
+      const key = parentKey ? parentKey + "." + k : k;
+      pickFields(v, result, key);
     } else {
-      result.push(k);
+      const key = parentKey ? parentKey + "." + k : k;
+      result.push(key);
     }
   }
 }

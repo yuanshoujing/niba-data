@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import logger from "./logger";
 import Pager from "./pager";
-import { padding } from "./helper";
+import { padding, pickFields } from "./helper";
 
 PouchDB.plugin(PouchdbFind);
 
@@ -28,7 +28,6 @@ class BaseModel {
     this.prefix_ = prefix;
     this.propsMap = {};
     this.fulltext = [];
-    this.indexes = [];
   }
 
   /**
@@ -206,8 +205,6 @@ class BaseModel {
   };
 
   indexNames = async () => {
-    await this.createIdx();
-
     const { indexes } = await this.db.getIndexes();
     console.log(JSON.stringify(indexes));
     return indexes
@@ -241,6 +238,24 @@ class BaseModel {
   };
 
   query = async ({ selector, fields, sort = [], skip = 0, limit = 0 }) => {
+    const indexFields = [];
+    pickFields(selector, indexFields);
+    logger.debug("--> indexFields: %O", indexFields);
+
+    const idxResult = await this.db.createIndex({
+      index: {
+        fields: [...sort, ...indexFields],
+      },
+    });
+
+    await this.db.createIndex({
+      index: {
+        fields: sort,
+      },
+    });
+    logger.debug("--> idxResult: %O", idxResult);
+    logger.debug("--> indexes: %O", JSON.stringify(await this.db.getIndexes()));
+
     // sort 字段必须出现在 selector 中
     const sortSelectors = {};
     sort.forEach((v) => {
@@ -274,7 +289,7 @@ class BaseModel {
     if (limit > 0) {
       Object.assign(params, { limit });
     }
-    if (sortFields.length > 0) {
+    if (sort.length > 0) {
       Object.assign(params, { sort });
     }
     logger.debug("--> query params: %s", JSON.stringify(params));

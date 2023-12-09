@@ -17,10 +17,6 @@ class Organ extends NBModel {
 
   fulltext = ["name", "spell", "remark"];
 
-  indexes = [["kind", "spell"]];
-
-  orders = { name: "asc" };
-
   constructor(args = {}) {
     const { name = "b_organs", daily = false } = args;
     super({ name, daily });
@@ -139,17 +135,15 @@ test("organ-query", async () => {
 
   const selector = {
     kind: "30",
-    $and: [
-      {
-        spell: "csjg_86",
-      },
-    ],
+    $not: {
+      spell: "csjg_86",
+    },
   };
 
   const organ = new Organ();
   organ.devMode = true;
-  console.log(await organ.indexNames());
-  const result = await organ.query({ selector });
+  console.log("--> indexes: %O", await organ.indexNames());
+  const result = await organ.query({ selector, sort: ["name"] });
   expect(result.length).toBe(1);
   expect(result[0].name).toBe("测试机构_86");
 });
