@@ -4,6 +4,20 @@ export function padding(str, width, c = " ") {
   return str.length < width ? c.repeat(width - str.length) + str : str;
 }
 
+export function merge$and(selector = {}) {
+  const result = {};
+  for (const [k, v] of Object.entries(selector)) {
+    if (k === "$and") {
+      v.forEach((o) => {
+        Object.assign(result, o);
+      });
+    } else {
+      Object.assign(result, { [k]: v });
+    }
+  }
+  return result;
+}
+
 export function pickFields(selector = {}, result = [], parentKey = "") {
   for (const [k, v] of Object.entries(selector)) {
     if (["$and", "$or", "$nor"].includes(k)) {

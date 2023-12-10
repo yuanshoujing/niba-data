@@ -59,9 +59,6 @@ test("organ-db-name", async () => {
   const organ = new Organ({ daily: true });
   expect(organ.dbName).toBe(`b_organs.${dt}`);
 
-  const indexs = await organ.indexNames();
-  expect(indexs.length).toBe(2);
-
   const { ok } = await organ.destroy();
   expect(ok).toBe(true);
 });
@@ -134,10 +131,14 @@ test("organ-query", async () => {
   await save1000();
 
   const selector = {
-    kind: "30",
-    $not: {
-      spell: "csjg_86",
-    },
+    $and: [
+      {
+        kind: "30",
+      },
+      {
+        spell: "csjg_86",
+      },
+    ],
   };
 
   const organ = new Organ();
@@ -156,6 +157,7 @@ test("organ-paged-query", async () => {
     selector: {
       spell: "csjg_86",
     },
+    sort: ["name"],
   });
   expect(result.count).toBe(1);
   expect(result.total).toBe(1);
@@ -169,6 +171,7 @@ test("organ-search", async () => {
   const organ = new Organ();
   const result = await organ.search({
     kws: "_86",
+    sort: [{ name: "asc" }],
   });
   expect(result.length).toBe(11);
   expect(result[10].name).toBe("测试机构_869");

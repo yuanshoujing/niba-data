@@ -1,1 +1,123 @@
 # niba-data
+
+一个超级简单的 Web 存储工具，可用于浏览器，也可用于 Node 环境。
+
+## 定义模型
+
+```
+class Organ extends NBModel {
+  propsMap = {
+    name: String,
+    spell: String,
+    kind: String,
+    parent_id: String,
+    state: Number,
+    remark: String,
+    avatar_id: String,
+    create_time: Date,
+  };
+
+  fulltext = ["name", "spell", "remark"];
+
+  constructor() {
+    super({ name: 'organs' });
+  }
+}
+```
+
+## 保存
+
+```
+    const organ = new Organ();
+    const { _id } = await organ.save({
+      name: `测试机构`,
+      spell: `csjg`,
+      avatar_id: null,
+      kind: "0",
+      parent_id: "178b7af3-4c85-4dc0-8a25-8c80db425ae8",
+      state: 1,
+      remark: null,
+      create_time: new Date(),
+    });
+```
+
+## 保存或更新
+
+```
+    const organ = new Organ();
+    const saved = await organ.upsert({
+      name: `测试机构`,
+      spell: `csjg`,
+      avatar_id: null,
+      kind: "0",
+      parent_id: "178b7af3-4c85-4dc0-8a25-8c80db425ae8",
+      state: 1,
+      remark: null,
+      create_time: new Date(),
+    });
+
+    await organ.upsert({
+        ...saved,
+        ...{
+            name: '测试机构X'
+        }
+    });
+```
+
+## 读取
+
+```
+  const indb = await organ.get(saved._id);
+```
+
+## 删除
+
+```
+  const result = await organ.delete(_id);
+```
+
+## 查询
+
+```
+  const selector = {
+    kind: "30",
+    spell: "csjg_86",
+  };
+
+  const organ = new Organ();
+  const result = await organ.query({ selector, sort: ["name"] });
+```
+
+## 分页
+
+```
+  const organ = new Organ();
+  const result = await organ.pagedQuery({
+    selector: {
+      spell: "csjg_86",
+    },
+    sort: ["name"],
+    page: 1,
+    rows: 10
+  });
+```
+
+## 全文检索
+
+```
+  const organ = new Organ();
+  const result = await organ.search({
+    kws: "_86",
+    sort: [{ name: "asc" }],
+  });
+```
+
+## 分页全文检索
+
+```
+  const organ = new Organ();
+  const result = await organ.pagedSearch({
+    kws: "_86",
+    rows: 2,
+  })
+```

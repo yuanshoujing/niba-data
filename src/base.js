@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import logger from "./logger";
 import Pager from "./pager";
-import { padding, pickFields } from "./helper";
+import { padding, merge$and, pickFields } from "./helper";
 
 PouchDB.plugin(PouchdbFind);
 
@@ -237,34 +237,25 @@ class BaseModel {
     return this.postproccess(resp);
   };
 
-  query = async ({ selector, fields, sort = [], skip = 0, limit = 0 }) => {
-    const indexFields = [];
-    pickFields(selector, indexFields);
-    logger.debug("--> indexFields: %O", indexFields);
-
-    const idxResult = await this.db.createIndex({
-      index: {
-        fields: [...sort, ...indexFields],
-      },
-    });
-
-    await this.db.createIndex({
-      index: {
-        fields: sort,
-      },
-    });
-    logger.debug("--> idxResult: %O", idxResult);
-    logger.debug("--> indexes: %O", JSON.stringify(await this.db.getIndexes()));
-
-    // sort 字段必须出现在 selector 中
+  query = async ({
+    selector = {},
+    fields = [],
+    sort = [],
+    skip = 0,
+    limit = 0,
+  }) => {
+    const sortFields = [];
     const sortSelectors = {};
     sort.forEach((v) => {
       if (typeof v === "string") {
+        sortFields.push(v);
+
         Object.assign(sortSelectors, {
           [v]: { $exists: true },
         });
       } else {
         Object.keys(v).forEach((k) => {
+          sortFields.push(k);
           Object.assign(sortSelectors, {
             [k]: { $exists: true },
           });
@@ -272,8 +263,28 @@ class BaseModel {
       }
     });
 
+    const mergedSelector = merge$and(selector);
+
+    let indexFields = [];
+    pickFields(mergedSelector, indexFields);
+    // logger.debug("--> indexFields: %O", indexFields);
+    indexFields = [...sortFields, ...indexFields];
+
+    if (
+      indexFields.length > 1 ||
+      (indexFields.length == 1 && indexFields[0] !== "_id")
+    ) {
+      const idxResult = await this.db.createIndex({
+        index: {
+          fields: indexFields,
+        },
+      });
+      // logger.debug("--> idxResult: %O", idxResult);
+      // logger.debug("--> indexes: %O", JSON.stringify(await this.db.getIndexes()));
+    }
+
     const querySelector = {
-      ...(selector ?? {}),
+      ...mergedSelector,
       ...sortSelectors,
     };
 
@@ -281,7 +292,7 @@ class BaseModel {
 
     const params = {
       selector: querySelector,
-      fields: fields ?? defaultFields,
+      fields: fields && fields.length > 0 ? fields : defaultFields,
     };
     if (skip > 0) {
       Object.assign(params, { skip });
@@ -309,7 +320,13 @@ class BaseModel {
     return list;
   };
 
-  pagedQuery = async ({ selector, fields, page = 1, rows = 20 }) => {
+  pagedQuery = async ({
+    selector = {},
+    fields = [],
+    sort = [],
+    page = 1,
+    rows = 20,
+  }) => {
     const ids = await this.query({
       selector,
       fields: ["_id"],
@@ -323,6 +340,7 @@ class BaseModel {
     const result = await this.query({
       selector,
       fields,
+      sort,
       skip,
       limit: rows,
     });
@@ -337,11 +355,19 @@ class BaseModel {
    * @param {string} [kws] 关键字
    * @param {object} [selector] 查询条件
    * @param {string[]} [fields] 返回属性
+   * @param {string[]|object[]} [sort] 排序属性
    * @param {integer} [skip] 起始索引
    * @param {integer} [limit] 返回记录数
    * @returns
    */
-  search = async ({ kws, selector, fields, skip = 0, limit = 0 }) => {
+  search = async ({
+    kws = "",
+    selector = {},
+    fields = [],
+    sort = [],
+    skip = 0,
+    limit = 0,
+  }) => {
     const querySelector = {
       ...(selector ?? {}),
       ...(kws && this.fulltext.length > 0
@@ -356,6 +382,7 @@ class BaseModel {
     const result = await this.query({
       selector: querySelector,
       fields,
+      sort,
       skip,
       limit,
     });
@@ -367,11 +394,19 @@ class BaseModel {
    * @param {string} [kws] 关键字
    * @param {object} [selector] 查询条件
    * @param {string[]} [fields] 返回属性
+   * @param {string[]|object[]} [sort] 排序属性
    * @param {integer} [page] 页码
    * @param {integer} [rows] 每页录数
    * @returns
    */
-  pagedSearch = async ({ kws, selector, fields, page = 1, rows = 20 }) => {
+  pagedSearch = async ({
+    kws = "",
+    selector = {},
+    fields = [],
+    sort = [],
+    page = 1,
+    rows = 20,
+  }) => {
     const ids = await this.search({ kws, selector, fields: ["_id"] });
 
     const pager = new Pager(ids.length, rows);
@@ -381,6 +416,7 @@ class BaseModel {
       kws,
       selector,
       fields,
+      sort,
       skip,
       limit: rows,
     });
