@@ -1,6 +1,7 @@
 # niba-data
 
 A super simple web storage tool that can be used in browsers as well as in Node environments.
+
 一个超级简单的 Web 存储工具，可用于浏览器，也可用于 Node 环境。
 
 ## install 安装
