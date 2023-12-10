@@ -1,14 +1,15 @@
 # niba-data
 
+A super simple web storage tool that can be used in browsers as well as in Node environments.
 一个超级简单的 Web 存储工具，可用于浏览器，也可用于 Node 环境。
 
-## 安装
+## install 安装
 
 ```bash
 npm i niba-data
 ```
 
-## 定义模型
+## define model 定义模型
 
 ```javascript
 class Organ extends NBModel {
@@ -31,7 +32,7 @@ class Organ extends NBModel {
 }
 ```
 
-## 保存
+## save 保存
 
 ```javascript
 const organ = new Organ();
@@ -47,7 +48,7 @@ const { _id } = await organ.save({
 });
 ```
 
-## 保存或更新
+## upsert 保存或更新
 
 ```javascript
 const organ = new Organ();
@@ -70,19 +71,19 @@ await organ.upsert({
 });
 ```
 
-## 读取
+## read 读取
 
 ```javascript
 const indb = await organ.get(saved._id);
 ```
 
-## 删除
+## delete 删除
 
 ```javascript
 const result = await organ.delete(_id);
 ```
 
-## 查询
+## query 查询
 
 ```javascript
 const selector = {
