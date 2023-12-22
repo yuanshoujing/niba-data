@@ -138,7 +138,7 @@ class BaseModel {
     const properties = this.preproccess(entity);
 
     const wait4save = Object.assign(properties, {
-      _id: uuidv4(),
+      _id: properties._id ?? uuidv4(),
     });
 
     let resp = await this.db.put(wait4save);
@@ -303,7 +303,7 @@ class BaseModel {
     if (sort.length > 0) {
       Object.assign(params, { sort });
     }
-    logger.debug("--> query params: %s", JSON.stringify(params));
+    // logger.debug("--> query params: %s", JSON.stringify(params));
 
     if (this.devMode_ && Object.keys(querySelector).length > 0) {
       const explanation = await this.db.explain(params);
