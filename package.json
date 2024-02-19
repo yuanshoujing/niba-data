@@ -1,6 +1,6 @@
 {
   "name": "niba-data",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A simple, easy-to-use web storage solution",
   "main": "index.js",
   "type": "module",

@@ -14,7 +14,7 @@ PouchDB.plugin(PouchdbFind);
  *
  * @author 袁首京 <yuanshoujing@gmail.com>
  */
-class BaseModel {
+export class NBModel {
   /**
    *
    * @abstract
@@ -425,5 +425,3 @@ class BaseModel {
     return pager.toJSON();
   };
 }
-
-export default BaseModel;
