@@ -100,6 +100,11 @@ export class NBModel {
         fulltext_,
       });
     }
+
+    if (obj._id) {
+      Object.assign(result, { _id: obj._id });
+    }
+
     return result;
   };
 
@@ -183,7 +188,15 @@ export class NBModel {
    */
   upsert = async (entity) => {
     if (entity._id) {
-      return await this.update(entity._id, entity);
+      try {
+        return await this.update(entity._id, entity);
+      } catch (e) {
+        if (e.status === 404) {
+          return await this.save(entity);
+        }
+
+        throw e;
+      }
     } else {
       return await this.save(entity);
     }
